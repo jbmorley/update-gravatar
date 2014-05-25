@@ -1,0 +1,49 @@
+#!/usr/bin/env python
+
+import urllib
+import hashlib
+import subprocess
+import urllib
+import urlparse
+import os
+import xml.dom.minidom
+import argparse
+import time
+
+# Constants.
+ICON_FILE = "~/.gravatar.jpg"
+size = 200
+
+# Derived properties.
+icon = os.path.expanduser(ICON_FILE) 
+user = os.path.expanduser("~")
+
+def update(email):
+
+  # Construct the url.
+  gravatar_url = "http://www.gravatar.com/avatar/" + hashlib.md5(email.lower()).hexdigest() + "?"
+  gravatar_url += urllib.urlencode({'s':str(size)})
+
+  # Download the icon.
+  if (os.path.exists(icon)):
+    os.unlink(icon)
+  urllib.urlretrieve(gravatar_url, icon)
+  path = os.path.abspath(icon)
+
+  # Set the icon.
+  subprocess.check_call(["dscl", ".", "-delete", user, "JPEGPhoto"])
+  subprocess.check_call(["dscl", ".", "-delete", user, "Picture"])
+  subprocess.check_call(["dscl", ".", "-create", user, "Picture", path])
+
+def main():
+  
+  parser = argparse.ArgumentParser(description = "Set your account picture to your Gravatar.")
+  parser.add_argument('email', help = 'Email account for which to fetch the avatar')
+  options = parser.parse_args()
+
+  update(options.email)
+
+
+if __name__ == '__main__':
+  main()
+
