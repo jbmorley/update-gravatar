@@ -11,7 +11,7 @@ usage: update-gravatar [-h] email
 
 Set your account picture to your Gravatar.
 
-N.B. update-gravatar must be run with administrative privileges (e.g. using sudo).
+N.B. Must be run with administrative privileges (e.g. using sudo).
 
 positional arguments:
   email       Email account for which to fetch the avatar
