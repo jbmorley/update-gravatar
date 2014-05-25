@@ -37,7 +37,7 @@ def update(email):
 
 def main():
   
-  parser = argparse.ArgumentParser(description = "Set your account picture to your Gravatar.")
+  parser = argparse.ArgumentParser(description = "Set your account picture to your Gravatar.\n\nN.B. Must be run with administrative privileges (e.g. using sudo).", formatter_class=argparse.RawDescriptionHelpFormatter)
   parser.add_argument('email', help = 'Email account for which to fetch the avatar')
   options = parser.parse_args()
 
