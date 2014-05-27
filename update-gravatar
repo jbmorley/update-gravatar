@@ -9,10 +9,12 @@ import os
 import xml.dom.minidom
 import argparse
 import time
+import tempfile
+import shutil
 
 # Constants.
 ICON_FILE = "~/.gravatar.jpg"
-size = 200
+SIZE = 200
 
 # Derived properties.
 icon = os.path.expanduser(ICON_FILE) 
@@ -22,18 +24,40 @@ def update(email):
 
   # Construct the url.
   gravatar_url = "http://www.gravatar.com/avatar/" + hashlib.md5(email.lower()).hexdigest() + "?"
-  gravatar_url += urllib.urlencode({'s':str(size)})
+  gravatar_url += urllib.urlencode({'s':str(SIZE)})
 
-  # Download the icon.
-  if (os.path.exists(icon)):
-    os.unlink(icon)
-  urllib.urlretrieve(gravatar_url, icon)
-  path = os.path.abspath(icon)
+  # Create a temporary location to download the file.
+  temp_dir = tempfile.mkdtemp()
+  temp_file = os.path.join(temp_dir, "gravatar.jpg")
 
-  # Set the icon.
-  subprocess.check_call(["dscl", ".", "-delete", user, "JPEGPhoto"])
-  subprocess.check_call(["dscl", ".", "-delete", user, "Picture"])
-  subprocess.check_call(["dscl", ".", "-create", user, "Picture", path])
+  try:
+
+    # Download the icon.
+    urllib.urlretrieve(gravatar_url, temp_file)
+
+    # Copy the icon to the final destination (once we know we have
+    # successfully retieved it).
+    if (os.path.exists(icon)):
+      os.unlink(icon)
+    shutil.move(temp_file, icon)
+    path = os.path.abspath(icon)
+
+    # Set the icon.
+    try:
+      subprocess.check_output(["dscl", ".", "-delete", user, "JPEGPhoto"],
+                              stderr=subprocess.STDOUT)
+      subprocess.check_output(["dscl", ".", "-delete", user, "Picture"],
+                              stderr=subprocess.STDOUT)
+      subprocess.check_output(["dscl", ".", "-create", user, "Picture", path],
+                              stderr=subprocess.STDOUT)
+    except:
+      print "Unable to set the profile photo. Did you run with administrative privileges?"
+      exit(1)
+
+  finally:
+    
+    # Clean up the temporary location.
+    shutil.rmtree(temp_dir)
 
 def main():
   
