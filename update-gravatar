@@ -11,6 +11,7 @@ import argparse
 import time
 import tempfile
 import shutil
+import plistlib
 
 # Constants.
 PICTURE_FILE = "~/.gravatar.jpg"
@@ -26,7 +27,13 @@ def dscl(command, arguments):
   return result
 
 def dscl_read(key):
-  return dscl("-read", [key])
+  user = os.path.expanduser("~")
+  result = subprocess.check_output(["dscl", "-plist", ".", "-read", user, key],
+                                   stderr=subprocess.STDOUT)
+  data = plistlib.readPlistFromString(result)
+  if (data):
+    return data.itervalues().next()[0]
+  return None
 
 def dscl_delete(key):
   return dscl("-delete", [key])
@@ -34,11 +41,19 @@ def dscl_delete(key):
 def dscl_create(key, value):
   return dscl("-create", [key, value])
 
+def dscl_update(key, value):
+  old_value = dscl_read(key)
+  if (old_value):
+    print "Changing JPEGPicture..."
+    dscl("-change", [key, old_value, value])
+  else:
+    print "Creating JPEGPicture..."
+    dscl("-create", [key, value])
+
 def set_profile_picture(path):
   try:
-    print dscl_delete("JPEGPhoto")
-    print dscl_delete("Picture")
-    print dscl_create("Picture", path)
+    dscl_update("Picture", path)
+    dscl_delete("JPEGPhoto")
   except:
     print "Unable to set the profile picture. Did you run with administrative privileges?"
     exit(1)
@@ -57,13 +72,6 @@ def update(email):
 
     # Download the profile picture.
     urllib.urlretrieve(gravatar_url, temp_file)
-
-    # Attempt to set the picture using the temporary location.
-    # This will allow us to know if we have sufficient privileges
-    # to set the photo before setting it destructively.
-    # Unfortunately this doesn't work as deleting items doesn't require
-    # admin privilege but creating them does.
-    set_profile_picture(temp_file)
 
     # Copy the picture to the final destination (once we know we have
     # successfully retieved it).
