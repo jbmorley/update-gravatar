@@ -13,12 +13,24 @@ import tempfile
 import shutil
 
 # Constants.
-ICON_FILE = "~/.gravatar.jpg"
+PICTURE_FILE = "~/.gravatar.jpg"
 SIZE = 200
 
 # Derived properties.
-icon = os.path.expanduser(ICON_FILE) 
+picture = os.path.expanduser(PICTURE_FILE) 
 user = os.path.expanduser("~")
+
+def set_profile_picture(user, path):
+  try:
+    subprocess.check_output(["dscl", ".", "-delete", user, "JPEGPhoto"],
+                            stderr=subprocess.STDOUT)
+    subprocess.check_output(["dscl", ".", "-delete", user, "Picture"],
+                            stderr=subprocess.STDOUT)
+    subprocess.check_output(["dscl", ".", "-create", user, "Picture", path],
+                            stderr=subprocess.STDOUT)
+  except:
+    print "Unable to set the profile picture. Did you run with administrative privileges?"
+    exit(1)
 
 def update(email):
 
@@ -32,27 +44,25 @@ def update(email):
 
   try:
 
-    # Download the icon.
+    # Download the profile picture.
     urllib.urlretrieve(gravatar_url, temp_file)
 
-    # Copy the icon to the final destination (once we know we have
-    # successfully retieved it).
-    if (os.path.exists(icon)):
-      os.unlink(icon)
-    shutil.move(temp_file, icon)
-    path = os.path.abspath(icon)
+    # Attempt to set the picture using the temporary location.
+    # This will allow us to know if we have sufficient privileges
+    # to set the photo before setting it destructively.
+    # Unfortunately this doesn't work as deleting items doesn't require
+    # admin privilege but creating them does.
+    set_profile_picture(user, temp_file)
 
-    # Set the icon.
-    try:
-      subprocess.check_output(["dscl", ".", "-delete", user, "JPEGPhoto"],
-                              stderr=subprocess.STDOUT)
-      subprocess.check_output(["dscl", ".", "-delete", user, "Picture"],
-                              stderr=subprocess.STDOUT)
-      subprocess.check_output(["dscl", ".", "-create", user, "Picture", path],
-                              stderr=subprocess.STDOUT)
-    except:
-      print "Unable to set the profile photo. Did you run with administrative privileges?"
-      exit(1)
+    # Copy the picture to the final destination (once we know we have
+    # successfully retieved it).
+    if (os.path.exists(picture)):
+      os.unlink(picture)
+    shutil.move(temp_file, picture)
+    path = os.path.abspath(picture)
+
+    # Set the picture.
+    set_profile_picture(user, path)
 
   finally:
     
