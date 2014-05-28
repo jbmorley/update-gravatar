@@ -59,8 +59,8 @@ def set_profile_picture(path):
 def update(email):
 
   # Construct the url.
-  gravatar_url = "http://www.gravatar.com/avatar/" + hashlib.md5(email.lower()).hexdigest() + "?"
-  gravatar_url += urllib.urlencode({'s':str(SIZE)})
+  gravatar = "http://www.gravatar.com/avatar/" + hashlib.md5(email.lower()).hexdigest() + "?"
+  gravatar += urllib.urlencode({'s':str(SIZE)})
 
   # Create a temporary location to download the file.
   temp_dir = tempfile.mkdtemp()
@@ -70,7 +70,7 @@ def update(email):
 
     # Download the profile picture.
     print "Downloading Gravatar..."
-    urllib.urlretrieve(gravatar_url, temp_file)
+    urllib.urlretrieve(gravatar, temp_file)
 
     # Copy the picture to the final destination (once we know we have
     # successfully retieved it).
