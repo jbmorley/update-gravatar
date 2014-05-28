@@ -44,10 +44,8 @@ def dscl_create(key, value):
 def dscl_update(key, value):
   old_value = dscl_read(key)
   if (old_value):
-    print "Changing JPEGPicture..."
     dscl("-change", [key, old_value, value])
   else:
-    print "Creating JPEGPicture..."
     dscl("-create", [key, value])
 
 def set_profile_picture(path):
@@ -71,6 +69,7 @@ def update(email):
   try:
 
     # Download the profile picture.
+    print "Downloading Gravatar..."
     urllib.urlretrieve(gravatar_url, temp_file)
 
     # Copy the picture to the final destination (once we know we have
@@ -81,7 +80,11 @@ def update(email):
     path = os.path.abspath(picture)
 
     # Set the picture.
+    print "Setting profile picture..."
     set_profile_picture(path)
+
+    # Log the success.
+    print "Success."
 
   finally:
     
@@ -90,7 +93,7 @@ def update(email):
 
 def main():
   
-  parser = argparse.ArgumentParser(description = "Set your account picture to your Gravatar.\n\nN.B. Must be run with administrative privileges (e.g. using sudo).", formatter_class=argparse.RawDescriptionHelpFormatter)
+  parser = argparse.ArgumentParser(description = "Set your account picture to your Gravatar.")
   parser.add_argument('email', help = 'Email account for which to fetch the avatar')
   options = parser.parse_args()
 
