@@ -41,12 +41,15 @@ def dscl_delete(key):
 def dscl_create(key, value):
   return dscl("-create", [key, value])
 
+def dscl_change(key, old_value, value):
+  return dscl("-change", [key, old_value, value])
+
 def dscl_update(key, value):
   old_value = dscl_read(key)
   if (old_value):
-    dscl("-change", [key, old_value, value])
+    dscl_change(key, old_value, value)
   else:
-    dscl("-create", [key, value])
+    dscl_create(key, value)
 
 def set_profile_picture(path):
   try:
