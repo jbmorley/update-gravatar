@@ -18,16 +18,27 @@ SIZE = 200
 
 # Derived properties.
 picture = os.path.expanduser(PICTURE_FILE) 
-user = os.path.expanduser("~")
 
-def set_profile_picture(user, path):
+def dscl(command, arguments):
+  user = os.path.expanduser("~")
+  result = subprocess.check_output(["dscl", ".", command, user] + arguments,
+                                   stderr=subprocess.STDOUT)
+  return result
+
+def dscl_read(key):
+  return dscl("-read", [key])
+
+def dscl_delete(key):
+  return dscl("-delete", [key])
+
+def dscl_create(key, value):
+  return dscl("-create", [key, value])
+
+def set_profile_picture(path):
   try:
-    subprocess.check_output(["dscl", ".", "-delete", user, "JPEGPhoto"],
-                            stderr=subprocess.STDOUT)
-    subprocess.check_output(["dscl", ".", "-delete", user, "Picture"],
-                            stderr=subprocess.STDOUT)
-    subprocess.check_output(["dscl", ".", "-create", user, "Picture", path],
-                            stderr=subprocess.STDOUT)
+    print dscl_delete("JPEGPhoto")
+    print dscl_delete("Picture")
+    print dscl_create("Picture", path)
   except:
     print "Unable to set the profile picture. Did you run with administrative privileges?"
     exit(1)
@@ -52,7 +63,7 @@ def update(email):
     # to set the photo before setting it destructively.
     # Unfortunately this doesn't work as deleting items doesn't require
     # admin privilege but creating them does.
-    set_profile_picture(user, temp_file)
+    set_profile_picture(temp_file)
 
     # Copy the picture to the final destination (once we know we have
     # successfully retieved it).
@@ -62,7 +73,7 @@ def update(email):
     path = os.path.abspath(picture)
 
     # Set the picture.
-    set_profile_picture(user, path)
+    set_profile_picture(path)
 
   finally:
     
