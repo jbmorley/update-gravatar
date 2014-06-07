@@ -67,6 +67,15 @@ def dscl_update(key, value):
   else:
     dscl_create(key, value)
 
+def get_email():
+  user = os.path.expanduser("~")
+  result = subprocess.check_output(["dscl", "-plist", ".", "-read", user, "dsAttrTypeStandard:RecordName"],
+                                   stderr=subprocess.STDOUT)
+  data = plistlib.readPlistFromString(result)
+  if (data):
+    return data.itervalues().next()
+  return None
+
 def set_profile_picture(path):
   try:
     dscl_update("Picture", path)
@@ -113,11 +122,21 @@ def update(email):
 def main():
   
   parser = argparse.ArgumentParser(description = "Set your account picture to your Gravatar.")
-  parser.add_argument('email', help = 'Email account for which to fetch the avatar')
+  parser.add_argument('-e', '--email', help = 'Email account for which to fetch the avatar')
   options = parser.parse_args()
 
-  update(options.email)
+  email = None
+  if (options.email):
+    email = options.email
+  else:
+    email = get_email()[1]
 
+  if not email:
+    print "Unable to determine email address"
+    exit(1)
+
+  print "Updating Gravatar for '%s'" % email
+  update(email)
 
 if __name__ == '__main__':
   main()
