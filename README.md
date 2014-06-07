@@ -22,7 +22,7 @@ optional arguments:
 Automatic Updates
 -----------------
 
-Add the following line to your crontab (`crontab -e`) to check for a new Gravatar hourly.
+Add the following line to your crontab (`crontab -e`) to check for a new Gravatar every hour:
 
 ```
 0 * * * * /path/to/update-gravatar
