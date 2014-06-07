@@ -7,13 +7,12 @@ Usage
 -----
 
 ```
-usage: update-gravatar [-h] email
+usage: update-gravatar [-h] [-e EMAIL]
 
 Set your account picture to your Gravatar.
 
-positional arguments:
-  email       Email account for which to fetch the avatar
-
 optional arguments:
-  -h, --help  show this help message and exit
+  -h, --help            show this help message and exit
+  -e EMAIL, --email EMAIL
+                        Email account for which to fetch the avatar
 ```
