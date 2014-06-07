@@ -18,3 +18,12 @@ optional arguments:
                         email account is specified, update-gravatar will
                         attempt to use the first linked account.
 ```
+
+Automatic Updates
+-----------------
+
+Add the following line to your crontab (`crontab -e`) to check for a new Gravatar hourly.
+
+```
+0 * * * * /path/to/update-gravatar
+```
