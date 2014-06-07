@@ -1,7 +1,7 @@
 update-gravatar
 ===============
 
-Fetch the current Gravatar for a given email address and set it as the OS X profile picture.
+Fetch the Gravatar for the current user and set it as the OS X profile picture.
 
 Usage
 -----
