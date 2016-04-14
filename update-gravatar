@@ -1,17 +1,17 @@
 #!/usr/bin/env python
 
 # Copyright (c) 2014 Jason Barrie Morley
-# 
+#
 # Permission is hereby granted, free of charge, to any person obtaining a copy
 # of this software and associated documentation files (the "Software"), to deal
 # in the Software without restriction, including without limitation the rights
 # to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 # copies of the Software, and to permit persons to whom the Software is
 # furnished to do so, subject to the following conditions:
-# 
+#
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
-# 
+#
 # THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 # IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 # FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,110 +34,120 @@ PICTURE_FILE = "~/.gravatar.jpg"
 SIZE = 200
 
 # Derived properties.
-picture = os.path.expanduser(PICTURE_FILE) 
+picture = os.path.expanduser(PICTURE_FILE)
+
 
 def dscl(command, arguments):
-  user = os.path.expanduser("~")
-  result = subprocess.check_output(["dscl", ".", command, user] + arguments,
-                                   stderr=subprocess.STDOUT)
-  return result
+    user = os.path.expanduser("~")
+    result = subprocess.check_output(["dscl", ".", command, user] + arguments,
+                                     stderr=subprocess.STDOUT)
+    return result
+
 
 def dscl_read(key):
-  user = os.path.expanduser("~")
-  result = subprocess.check_output(["dscl", "-plist", ".", "-read", user, key],
-                                   stderr=subprocess.STDOUT)
-  data = plistlib.readPlistFromString(result)
-  if (data):
-    return data.itervalues().next()[0]
-  return None
+    user = os.path.expanduser("~")
+    result = subprocess.check_output(["dscl", "-plist", ".", "-read", user, key],
+                                     stderr=subprocess.STDOUT)
+    data = plistlib.readPlistFromString(result)
+    if (data):
+        return data.itervalues().next()[0]
+    return None
+
 
 def dscl_delete(key):
-  return dscl("-delete", [key])
+    return dscl("-delete", [key])
+
 
 def dscl_create(key, value):
-  return dscl("-create", [key, value])
+    return dscl("-create", [key, value])
+
 
 def dscl_change(key, old_value, value):
-  return dscl("-change", [key, old_value, value])
+    return dscl("-change", [key, old_value, value])
+
 
 def dscl_update(key, value):
-  old_value = dscl_read(key)
-  if (old_value):
-    dscl_change(key, old_value, value)
-  else:
-    dscl_create(key, value)
+    old_value = dscl_read(key)
+    if (old_value):
+        dscl_change(key, old_value, value)
+    else:
+        dscl_create(key, value)
+
 
 def get_email():
-  user = os.path.expanduser("~")
-  result = subprocess.check_output(["dscl", "-plist", ".", "-read", user, "dsAttrTypeStandard:RecordName"],
-                                   stderr=subprocess.STDOUT)
-  data = plistlib.readPlistFromString(result)
-  if (data):
-    return data.itervalues().next()
-  return None
+    user = os.path.expanduser("~")
+    result = subprocess.check_output(["dscl", "-plist", ".", "-read", user, "dsAttrTypeStandard:RecordName"],
+                                     stderr=subprocess.STDOUT)
+    data = plistlib.readPlistFromString(result)
+    if (data):
+        return data.itervalues().next()
+    return None
+
 
 def set_profile_picture(path):
-  try:
-    dscl_update("Picture", path)
-    dscl_delete("JPEGPhoto")
-  except:
-    print "Unable to set the profile picture. Did you run with administrative privileges?"
-    exit(1)
+    try:
+        dscl_update("Picture", path)
+        dscl_delete("JPEGPhoto")
+    except:
+        exit("Unable to set the profile picture. Did you run with administrative privileges?")
+
 
 def update(email):
 
-  # Construct the url.
-  gravatar = "http://www.gravatar.com/avatar/" + hashlib.md5(email.lower()).hexdigest() + "?"
-  gravatar += urllib.urlencode({'s':str(SIZE)})
+    # Construct the url.
+    gravatar = "http://www.gravatar.com/avatar/" + hashlib.md5(email.lower()).hexdigest() + "?"
+    gravatar += urllib.urlencode({'s': str(SIZE)})
 
-  # Create a temporary location to download the file.
-  temp_dir = tempfile.mkdtemp()
-  temp_file = os.path.join(temp_dir, "gravatar.jpg")
+    # Create a temporary location to download the file.
+    temp_dir = tempfile.mkdtemp()
+    temp_file = os.path.join(temp_dir, "gravatar.jpg")
 
-  try:
+    try:
 
-    # Download the profile picture.
-    print "Downloading Gravatar..."
-    urllib.urlretrieve(gravatar, temp_file)
+        # Download the profile picture.
+        print "Downloading Gravatar..."
+        urllib.urlretrieve(gravatar, temp_file)
 
-    # Copy the picture to the final destination (once we know we have
-    # successfully retieved it).
-    if (os.path.exists(picture)):
-      os.unlink(picture)
-    shutil.move(temp_file, picture)
-    path = os.path.abspath(picture)
+        # Copy the picture to the final destination (once we know we have successfully retieved it).
+        if (os.path.exists(picture)):
+            os.unlink(picture)
+        shutil.move(temp_file, picture)
+        path = os.path.abspath(picture)
 
-    # Set the picture.
-    print "Setting profile picture..."
-    set_profile_picture(path)
+        # Set the picture.
+        print "Setting profile picture..."
+        set_profile_picture(path)
 
-    # Log the success.
-    print "Success."
+        # Log the success.
+        print "Success."
 
-  finally:
-    
-    # Clean up the temporary location.
-    shutil.rmtree(temp_dir)
+    finally:
+
+        # Clean up the temporary location.
+        shutil.rmtree(temp_dir)
+
 
 def main():
-  
-  parser = argparse.ArgumentParser(description = "Set your account picture to your Gravatar.")
-  parser.add_argument('-e', '--email', help = 'Email account for which to fetch the avatar. If no email account is specified, update-gravatar will attempt to use the first linked account.')
-  options = parser.parse_args()
+    parser = argparse.ArgumentParser(description="Set your account picture to your Gravatar.")
+    parser.add_argument('-e', '--email',
+                        help="Email account for which to fetch the avatar. If no email account is specified, "
+                              "update-gravatar will attempt to use the first linked account.")
+    options = parser.parse_args()
 
-  email = None
-  if (options.email):
-    email = options.email
-  else:
-    email = get_email()[1]
+    email = None
+    if (options.email):
+        email = options.email
+    else:
+        details = get_email()
+        if len(details) > 1:
+            email = details[1]
 
-  if not email:
-    print "Unable to determine email address"
-    exit(1)
+    if not email:
+        print "Unable to determine email address"
+        exit(1)
 
-  print "Updating Gravatar for '%s'" % email
-  update(email)
+    print "Updating Gravatar for '%s'" % email
+    update(email)
 
 if __name__ == '__main__':
-  main()
-
+    main()
